@@ -1,6 +1,10 @@
 ##### Objective
 Write an emulator for an 8-bit computer with 8-bit memory addressing
 
+##### Specifications
+- has a total of 256 bytes (1 char = 1 byte) of memory
+- can only compute values up to 255
+
 ##### Example
 ```
 # print8.ls8: Print the number 8 on the screen
@@ -20,5 +24,8 @@ Write an emulator for an 8-bit computer with 8-bit memory addressing
   - TODO: refactor cpu_load, read file after cpu_init()
   - TODO: additional ALU options
   - TODO: complete cpu_run()
-- cpu.h - header file for cpu.c 
+- cpu.h - header file for cpu.c
+  - TODO: write struct cpu
+  - TODO: add ALU options as created
+  - TODO: add binary literals
 - ls8.c - represents 8-bit computer
