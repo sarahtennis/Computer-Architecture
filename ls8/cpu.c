@@ -79,8 +79,21 @@ void cpu_run(struct cpu *cpu)
 
 /**
  * Initialize a CPU struct
+ * PC, registers, and RAM should be cleared to zero
  */
 void cpu_init(struct cpu *cpu)
 {
-  // TODO: Initialize the PC and other special registers
+  // Initialize the PC
+  cpu->PC = 0;
+
+  // ram and registers to 0
+  memset(cpu->ram, 0, sizeof(cpu->ram));
+  memset(cpu->registers, 0, sizeof(cpu->registers));
+
+  // initialize special registers
+  // R7 --> stack pointer (SP)
+  // SP points at the value at the top of the stack
+  // (most recently pushed), or at address F4 if the
+  // stack is empty.
+  cpu->registers[6] = &cpu->ram[0xF4];
 }
