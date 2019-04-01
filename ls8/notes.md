@@ -29,3 +29,13 @@ Write an emulator for an 8-bit computer with 8-bit memory addressing
   - TODO: add ALU options as created
   - TODO: add binary literals
 - ls8.c - represents 8-bit computer
+
+##### Registers
+R0 - PC: program counter
+R1 - IR: instruction register (copy of current instructions)
+R2 - MAR: memory address register (address reading or writing to)
+R3 - MDR: memory data register (holds value to write or just read)
+R4 - FL: flags
+R5 - IM: interrupt mask
+R6 - IS: interrupt status
+R7 - SP: stack pointer (head of stack, otherwise 0xF4)

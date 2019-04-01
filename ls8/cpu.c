@@ -24,6 +24,17 @@ void cpu_load(struct cpu *cpu)
     cpu->ram[address++] = data[i];
   }
 
+  // initialize PC
+  cpu->PC = &cpu->ram[0];
+
+  // initialize PC register
+  cpu->registers[0] = cpu->PC;
+
+  // initialize IR instruction register
+  cpu->registers[1] = &(cpu->PC);
+
+  // initialize stack head and update SP?
+
   // TODO: Replace this with something less hard-coded
 }
 
@@ -67,11 +78,23 @@ void cpu_run(struct cpu *cpu)
 
   while (running)
   {
-    // TODO
-    // 1. Get the value of the current instruction (in address PC).
-    // 2. Figure out how many operands this next instruction requires
+    // Get the value of the current instruction
+    // (in address PC).
+    unsigned char instruction = cpu->registers[1];
+
+    // Figure out how many operands this next instruction requires
     // 3. Get the appropriate value(s) of the operands following this instruction
     // 4. switch() over it to decide on a course of action.
+    switch (instruction)
+    {
+    // LDI
+    // Set the value of a register to an integer.
+    case LDI:
+      int reg = cpu->ram[(cpu->registers[0]) + 1];
+      int value = cpu->ram[(cpu->registers[0]) + 2];
+
+      cpu->registers[reg] = value;
+    }
     // 5. Do whatever the instruction should do according to the spec.
     // 6. Move the PC to the next instruction.
   }
@@ -80,10 +103,19 @@ void cpu_run(struct cpu *cpu)
 /**
  * Initialize a CPU struct
  * PC, registers, and RAM should be cleared to zero
+ * 
+ * R0-R6 are cleared to 0.
+ * R7 is set to 0xF4.
+ * PC and FL registers are cleared to 0.
+ * RAM is cleared to 0.
+ * 
+ * unsigned char *PC;
+ * unsigned char **registers;
+ * unsigned char **ram;
  */
 void cpu_init(struct cpu *cpu)
 {
-  // Initialize the PC
+  // Initialize the PC to 0
   cpu->PC = 0;
 
   // ram and registers to 0
