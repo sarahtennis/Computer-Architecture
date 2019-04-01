@@ -28,6 +28,22 @@ void cpu_load(struct cpu *cpu)
 }
 
 /**
+ * Read ram inside struct cpu
+ **/
+unsigned char cpu_ram_read(struct cpu *cpu, unsigned char index)
+{
+  return cpu->ram[index];
+};
+
+/**
+ * Write to ram inside struct cpu
+ **/
+void cpu_ram_write(struct cpu *cpu, unsigned char index, unsigned char value)
+{
+  cpu->ram[index] = value;
+};
+
+/**
  * Arithmetic logic unit, ALU
  */
 void alu(struct cpu *cpu, enum alu_op op, unsigned char regA, unsigned char regB)
