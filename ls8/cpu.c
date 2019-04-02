@@ -25,13 +25,7 @@ void cpu_load(struct cpu *cpu)
   }
 
   // initialize PC
-  cpu->PC = &cpu->ram[0];
-
-  // initialize PC register
-  cpu->registers[0] = cpu->PC;
-
-  // initialize IR instruction register
-  cpu->registers[1] = &(cpu->PC);
+  cpu->registers[3] = cpu->PC;
 
   // initialize stack head and update SP?
 
@@ -80,23 +74,48 @@ void cpu_run(struct cpu *cpu)
   {
     // Get the value of the current instruction
     // (in address PC).
-    unsigned char instruction = cpu->registers[1];
+    unsigned char currentPC = cpu->registers[3];
+    unsigned char instruction = cpu->ram[currentPC];
+    // printf("%d - %x\n", currentPC, instruction);
+    // break;
 
     // Figure out how many operands this next instruction requires
-    // 3. Get the appropriate value(s) of the operands following this instruction
-    // 4. switch() over it to decide on a course of action.
+    // AABCDDDD ---> AA is number of operands
+    int countOperands = instruction >> 6;
+
+    // Get the appropriate value(s) of the operands following this instruction
+    int operandA;
+    int operandB;
+
+    if (countOperands == 1)
+    {
+      operandA = cpu->ram[currentPC + 1];
+    }
+
+    if (countOperands == 2)
+    {
+      operandB = cpu->ram[currentPC + 2];
+    }
+
+    // switch() over it to decide on a course of action.
+    // Do whatever the instruction should do according to the spec.
     switch (instruction)
     {
-    // LDI
-    // Set the value of a register to an integer.
+    // LDI: Set value of register (operandA) to integer (operandB)
     case LDI:
-      int reg = cpu->ram[(cpu->registers[0]) + 1];
-      int value = cpu->ram[(cpu->registers[0]) + 2];
+      cpu->registers[operandA] = operandB;
 
-      cpu->registers[reg] = value;
+    // PRN : print value stored in given register to console
+    case PRN:
+      printf("%d\n", cpu->registers[operandA]);
+
+    case HLT:
+      running = 0;
+      break;
     }
-    // 5. Do whatever the instruction should do according to the spec.
-    // 6. Move the PC to the next instruction.
+
+    // Move the PC to the next instruction.
+    cpu->PC = (cpu->PC) + countOperands + 1;
   }
 }
 
@@ -108,10 +127,6 @@ void cpu_run(struct cpu *cpu)
  * R7 is set to 0xF4.
  * PC and FL registers are cleared to 0.
  * RAM is cleared to 0.
- * 
- * unsigned char *PC;
- * unsigned char **registers;
- * unsigned char **ram;
  */
 void cpu_init(struct cpu *cpu)
 {
