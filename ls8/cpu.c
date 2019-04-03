@@ -66,7 +66,7 @@ void cpu_load(struct cpu *cpu, int argc, char **argv)
   fclose(fp);
 
   // initialize PC
-  cpu->registers[3] = cpu->PC;
+  cpu->registers[4] = cpu->PC;
 
   // initialize stack head and update SP?
 
@@ -115,7 +115,7 @@ void cpu_run(struct cpu *cpu)
   {
     // Get the value of the current instruction
     // (in address PC).
-    unsigned char currentPC = cpu->registers[3];
+    unsigned char currentPC = cpu->registers[4];
     unsigned char instruction = cpu->ram[currentPC];
     // printf("PC: %d - instruction: %x\n", currentPC, instruction);
     // break;
@@ -158,9 +158,25 @@ void cpu_run(struct cpu *cpu)
       alu(cpu, ALU_MUL, operandA, operandB);
       break;
 
+    // Pop the value at the top of the stack into the given register.
+    // Copy the value from the address pointed to by SP to the given register.
+    // Increment SP.
+    case POP:
+      cpu->registers[operandA] = cpu->ram[cpu->registers[7]];
+      cpu->registers[7]++;
+      break;
+
     // print value stored in given register to console
     case PRN:
       printf("%d\n", cpu->registers[operandA]);
+      break;
+
+    // Push the value in the given register on the stack.
+    // 1. Decrement the SP.
+    // 2. Copy the value in the given register to the address pointed to by SP.
+    case PUSH:
+      cpu->registers[7]--;
+      cpu->ram[cpu->registers[7]] = cpu->registers[operandA];
       break;
 
     default:
@@ -172,7 +188,7 @@ void cpu_run(struct cpu *cpu)
     // Move the PC to the next instruction.
     // printf("pc before: %d\n", cpu->PC);
     cpu->PC = (cpu->PC) + countOperands + 1;
-    cpu->registers[3] = cpu->PC;
+    cpu->registers[4] = cpu->PC;
     // printf("pc after: %d\n", cpu->PC);
   }
 }
@@ -200,5 +216,5 @@ void cpu_init(struct cpu *cpu)
   // SP points at the value at the top of the stack
   // (most recently pushed), or at address F4 if the
   // stack is empty.
-  // cpu->registers[6] = &cpu->ram[0xF4];
+  cpu->registers[7] = 0xF4;
 }
