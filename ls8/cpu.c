@@ -58,19 +58,20 @@ void cpu_load(struct cpu *cpu, int argc, char **argv)
 
   while (fgets(instruction, 256, fp) != NULL)
   {
-    unsigned char value = strtoul(instruction, NULL, 2);
+    char *ptr;
+    unsigned char value = strtoul(instruction, &ptr, 2);
     // printf("instruction: %x\n", value);
-    cpu->ram[address++] = value;
+    if (instruction != ptr)
+    {
+      cpu->ram[address++] = value;
+      // printf("%s\n", instruction);
+    }
   }
 
   fclose(fp);
 
   // initialize PC
   cpu->registers[4] = cpu->PC;
-
-  // initialize stack head and update SP?
-
-  // TODO: Replace this with something less hard-coded
 }
 
 /**
@@ -99,7 +100,8 @@ void alu(struct cpu *cpu, enum alu_op op, unsigned char regA, unsigned char regB
   case ALU_MUL:
     cpu->registers[regA] = (cpu->registers[regA] * cpu->registers[regB]) & 0xFF;
     break;
-
+  case ALU_ADD:
+    cpu->registers[regA] = (cpu->registers[regA] + cpu->registers[regB]) & 0xFF;
     // TODO: implement more ALU ops
   }
 }
@@ -142,6 +144,27 @@ void cpu_run(struct cpu *cpu)
     // Do whatever the instruction should do according to the spec.
     switch (instruction)
     {
+    case ADD:
+      alu(cpu, ALU_ADD, operandA, operandB);
+      break;
+
+    // Calls a subroutine at the address stored in the register
+    // The address of the instruction directly after CALL is pushed onto the stack. This allows us to return to where we left off when the subroutine finishes executing.
+    // The PC is set to the address stored in the given register. We jump to that location in RAM and execute the first instruction in the subroutine.
+    // The PC can move forward or backwards from its current location.
+    case CALL:
+      // increment SP
+      cpu->registers[7]--;
+
+      // push return location to SP
+      cpu->registers[7] = (currentPC) + countOperands;
+
+      // move to instruction from value in register
+      cpu->PC = cpu->registers[operandA] - countOperands - 1;
+      cpu->registers[4] = cpu->PC;
+
+      break;
+
     // exit process
     case HLT:
       running = 0;
@@ -179,6 +202,14 @@ void cpu_run(struct cpu *cpu)
       cpu->ram[cpu->registers[7]] = cpu->registers[operandA];
       break;
 
+    // Return from subroutine.
+    // Pop the value from the top of the stack and store it in the PC.
+    case RET:
+      cpu->PC = cpu->registers[7];
+      cpu->registers[4] = cpu->PC;
+      cpu->registers[7]++;
+      break;
+
     default:
       printf("ERROR: Invalid instruction");
       running = 0;
@@ -186,10 +217,8 @@ void cpu_run(struct cpu *cpu)
     }
 
     // Move the PC to the next instruction.
-    // printf("pc before: %d\n", cpu->PC);
     cpu->PC = (cpu->PC) + countOperands + 1;
     cpu->registers[4] = cpu->PC;
-    // printf("pc after: %d\n", cpu->PC);
   }
 }
 
