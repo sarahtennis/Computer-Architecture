@@ -92,17 +92,17 @@ void cpu_ram_write(struct cpu *cpu, unsigned char index, unsigned char value)
 /**
  * Arithmetic logic unit, ALU
  */
-// void alu(struct cpu *cpu, enum alu_op op, unsigned char regA, unsigned char regB)
-// {
-//   switch (op)
-//   {
-//   case ALU_MUL:
-//     // TODO
-//     break;
+void alu(struct cpu *cpu, enum alu_op op, unsigned char regA, unsigned char regB)
+{
+  switch (op)
+  {
+  case ALU_MUL:
+    cpu->registers[regA] = (cpu->registers[regA] * cpu->registers[regB]) & 0xFF;
+    break;
 
-//     // TODO: implement more ALU ops
-//   }
-// }
+    // TODO: implement more ALU ops
+  }
+}
 
 /**
  * Run the CPU
@@ -129,7 +129,7 @@ void cpu_run(struct cpu *cpu)
     int operandA = 0;
     int operandB = 0;
 
-    if (countOperands == 1)
+    if (countOperands > 0)
     {
       operandA = cpu->ram[currentPC + 1];
     }
@@ -138,25 +138,29 @@ void cpu_run(struct cpu *cpu)
     {
       operandB = cpu->ram[currentPC + 2];
     }
-
-    // printf("operandA: %d, operandB: %d\n", operandA, operandB);
-
     // switch() over it to decide on a course of action.
     // Do whatever the instruction should do according to the spec.
     switch (instruction)
     {
-    // LDI: Set value of register (operandA) to integer (operandB)
+    // exit process
+    case HLT:
+      running = 0;
+      break;
+
+    // Set value of register (operandA) to integer (operandB)
     case LDI:
       cpu->registers[operandA] = operandB;
       break;
 
-    // PRN : print value stored in given register to console
-    case PRN:
-      printf("%d\n", cpu->registers[operandA]);
+    // Multiply the values in two registers together and store the result in registerA.
+    // This is an instruction handled by the ALU.
+    case MUL:
+      alu(cpu, ALU_MUL, operandA, operandB);
       break;
 
-    case HLT:
-      running = 0;
+    // print value stored in given register to console
+    case PRN:
+      printf("%d\n", cpu->registers[operandA]);
       break;
 
     default:
